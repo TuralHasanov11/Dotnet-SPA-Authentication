@@ -5,7 +5,7 @@ import { Result } from '@/primitives/Result'
 import type { LoginRequest, RefreshTokenRequest, RegisterRequest } from '@/requests'
 import type { AccessTokenResponse, UserResponse } from '@/responses'
 import Mapper from '@/mappers'
-import { useHttpClient } from '@/composables/useHttpClient'
+import { useHttpClient, usePrivateHttpClient } from '@/composables/useHttpClient'
 import { AppError } from '@/primitives/Error'
 import type { AxiosError, AxiosResponse } from 'axios'
 
@@ -71,9 +71,9 @@ export const useAuthenticationStore = defineStore('authentication', () => {
 
   async function logout(): Promise<Result<string>> {
     try {
-      await useHttpClient().get('api/authentication/logout')
+      await usePrivateHttpClient().get('api/authentication/logout')
     } catch (error) {
-      const apiError = error as AxiosError
+      //
     }
 
     user.value = nullUser
@@ -85,7 +85,9 @@ export const useAuthenticationStore = defineStore('authentication', () => {
 
   async function getUserInfo(): Promise<Result<string>> {
     try {
-      const { data } = await useHttpClient().get<UserResponse>('api/authentication/user-info')
+      const { data } = await usePrivateHttpClient().get<UserResponse>(
+        'api/authentication/user-info'
+      )
 
       user.value = Mapper.toUser(data)
     } catch (error: any) {
@@ -99,7 +101,7 @@ export const useAuthenticationStore = defineStore('authentication', () => {
 
   async function refresh(): Promise<Result<string>> {
     try {
-      const { data } = await useHttpClient().post<
+      const { data } = await usePrivateHttpClient().post<
         RefreshTokenRequest,
         AxiosResponse<AccessTokenResponse>
       >('api/authentication/refresh', {

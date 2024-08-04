@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthenticationStore } from '@/stores/authentication'
+import { Permissions } from '@/models'
 
 const authStore = useAuthenticationStore()
 const router = useRouter()
@@ -51,7 +52,7 @@ async function logout() {
                     >
                   </li>
 
-                  <li class="nav-item">
+                  <li v-if="authStore.hasPermission(Permissions.RoleCreate)" class="nav-item">
                     <RouterLink
                       activeClass="active"
                       class="nav-link"

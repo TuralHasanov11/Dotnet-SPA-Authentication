@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { Role } from '@/models'
 import { Result } from '@/primitives/Result'
 import type { CreateRoleRequest } from '@/requests'
-import { useHttpClient } from '@/composables/useHttpClient'
+import { usePrivateHttpClient } from '@/composables/useHttpClient'
 import { AppError } from '@/primitives/Error'
 import type { AxiosError } from 'axios'
 
@@ -12,7 +12,7 @@ export const useAuthorizationStore = defineStore('authorization', () => {
 
   async function getRoles(): Promise<void> {
     try {
-      const { data } = await useHttpClient().get<Role[]>('api/authorization/roles')
+      const { data } = await usePrivateHttpClient().get<Role[]>('api/authorization/roles')
 
       roles.value = data
     } catch (error) {
@@ -22,7 +22,7 @@ export const useAuthorizationStore = defineStore('authorization', () => {
 
   async function createRole(name: string): Promise<Result<string>> {
     try {
-      await useHttpClient().post<CreateRoleRequest>('api/authorization/roles', {
+      await usePrivateHttpClient().post<CreateRoleRequest>('api/authorization/roles', {
         name: name
       })
     } catch (error) {

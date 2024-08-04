@@ -1,12 +1,12 @@
 import { watchEffect } from 'vue'
 import type { AxiosInstance } from 'axios'
-import { privateHttpClient } from '@/utils/httpClient'
+import { httpClient, privateHttpClient } from '@/utils/httpClient'
 import { useAuthenticationStore } from '@/stores/authentication'
 
 let retryCount: number = 0
 const MAX_RETRIES = 3
 
-export function useHttpClient(): AxiosInstance {
+export function usePrivateHttpClient(): AxiosInstance {
   const authStore = useAuthenticationStore()
 
   watchEffect(() => {
@@ -59,4 +59,8 @@ export function useHttpClient(): AxiosInstance {
   })
 
   return privateHttpClient
+}
+
+export function useHttpClient(): AxiosInstance {
+  return httpClient
 }

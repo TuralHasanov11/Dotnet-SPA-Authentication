@@ -21,7 +21,7 @@ async function register(): void {
   )
 
   if (result.isSuccess) {
-    return router.replace({ name: 'login' })
+    return router.replace({ name: 'authentication-login' })
   }
 
   alert(result.error)
@@ -45,8 +45,8 @@ async function register(): void {
         <input class="form-control" type="password" id="password" v-model="password" />
       </div>
       <div class="form-group mb-3">
-        <label class="form-label" for="password">Password</label>
-        <input class="form-control" type="password" id="password" v-model="password" />
+        <label class="form-label" for="password">Confirm Password</label>
+        <input class="form-control" type="password" id="password" v-model="confirmPassword" />
       </div>
       <button class="btn btn-primary" type="submit">Register</button>
     </form>
