@@ -15,7 +15,7 @@ async function logout() {
 </script>
 
 <template>
-  <template v-if="authStore.isEmpty">
+  <template v-if="authStore.isLoading">
     <span>Loading...</span>
   </template>
   <template v-else>

@@ -50,7 +50,7 @@ const router = createRouter({
 router.beforeResolve(async (to, from, next) => {
   const authStore = useAuthenticationStore()
 
-  if (authStore.isEmpty) {
+  if (authStore.isLoading) {
     await authStore.getUserInfo()
     console.log('User info fetched')
   }

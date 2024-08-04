@@ -45,7 +45,7 @@ public class JwtProvider(
                 SecurityAlgorithms.HmacSha256Signature),
             Issuer = _tokenOptions.ValidIssuer,
             Audience = _tokenOptions.ValidAudience,
-            Expires = DateTime.UtcNow.AddMinutes(_tokenOptions.AccessTokenLifeTime),
+            Expires = DateTime.UtcNow.AddSeconds(_tokenOptions.AccessTokenLifeTime),
         });
 
         var refreshToken = new RefreshToken(
@@ -104,22 +104,22 @@ public class JwtProvider(
 
         try
         {
+            var validationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
+                ValidateAudience = _tokenValidationParameters.ValidateAudience,
+                ValidAudience = _tokenValidationParameters.ValidAudience,
+                ValidateLifetime = false,
+                ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
+                ValidIssuer = _tokenValidationParameters.ValidIssuer,
+                IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
+                ClockSkew = _tokenValidationParameters.ClockSkew
+            };
+
             var principal = tokenHandler.ValidateToken(
                 accessToken,
-                _tokenValidationParameters,
+                validationParameters,
                 out var validatedToken);
-
-            if (!IsTokenWithValidSecurityAlgorithm(validatedToken))
-            {
-                return Result.Failure<ClaimsPrincipal>(
-                    Error.Validation("AccessToken.Invalid", "Invalid Access Token"));
-            }
-
-            if (HasTokenExpired(principal))
-            {
-                return Result.Failure<ClaimsPrincipal>(
-                    Error.Validation("AccessToken.NotExpired", "Access Token not expired"));
-            }
 
             var jti = principal.Claims
                 .Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
@@ -144,22 +144,5 @@ public class JwtProvider(
             return Result.Failure<ClaimsPrincipal>(
                 Error.Failure("GetPrincipalFromToken.Failure", ex.Message));
         }
-    }
-
-    private static bool HasTokenExpired(ClaimsPrincipal principal)
-    {
-        long expiryDateUnix = long.Parse(
-            principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
-
-        var expiryDateTimeUtc = DateTime.UnixEpoch.AddSeconds(expiryDateUnix);
-
-        return expiryDateTimeUtc > DateTime.UtcNow;
-    }
-
-    private static bool IsTokenWithValidSecurityAlgorithm(SecurityToken validatedToken)
-    {
-        return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
-               jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                   StringComparison.InvariantCultureIgnoreCase);
     }
 }

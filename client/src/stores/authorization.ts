@@ -4,6 +4,8 @@ import type { Role } from '@/models'
 import { Result } from '@/primitives/Result'
 import type { CreateRoleRequest } from '@/requests'
 import { useHttpClient } from '@/composables/useHttpClient'
+import { AppError } from '@/primitives/Error'
+import type { AxiosError } from 'axios'
 
 export const useAuthorizationStore = defineStore('authorization', () => {
   const roles = ref<Role[]>([])
@@ -24,9 +26,8 @@ export const useAuthorizationStore = defineStore('authorization', () => {
         name: name
       })
     } catch (error) {
-      console.log(error)
-
-      // return Result.failure('Failed to create role')
+      const apiError = error as AxiosError
+      return Result.failure(AppError.failure(apiError.message))
     }
 
     return Result.success('Registration successful')

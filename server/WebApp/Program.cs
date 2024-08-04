@@ -54,6 +54,7 @@ var tokenValidationParameters = new TokenValidationParameters()
     ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
     IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),
+    ClockSkew = TimeSpan.Zero
 };
 
 builder.Services.AddSingleton(tokenValidationParameters);

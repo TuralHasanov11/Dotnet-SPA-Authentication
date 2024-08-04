@@ -6,7 +6,7 @@ import type { LoginRequest, RefreshTokenRequest, RegisterRequest } from '@/reque
 import type { AccessTokenResponse, UserResponse } from '@/responses'
 import Mapper from '@/mappers'
 import { useHttpClient } from '@/composables/useHttpClient'
-import { AppError, ErrorType } from '@/primitives/Error'
+import { AppError } from '@/primitives/Error'
 import type { AxiosError, AxiosResponse } from 'axios'
 
 const nullUser: User = {
@@ -18,10 +18,10 @@ const nullUser: User = {
 
 export const useAuthenticationStore = defineStore('authentication', () => {
   const user = ref<User>()
-  const isAuthenticated = computed(() => !isEmpty.value && user?.value?.id !== nullUser.id)
-  const isEmpty = computed(() => user?.value === undefined)
-  const accessToken = ref<string>()
-  const refreshToken = ref<string>()
+  const isAuthenticated = computed(() => !isLoading.value && user?.value?.id !== nullUser.id)
+  const isLoading = computed(() => user?.value === undefined)
+  const accessToken = ref<string>('')
+  const refreshToken = ref<string>('')
 
   function hasPermission(permission: string): boolean {
     return (isAuthenticated.value && user.value?.permissions?.includes(permission)) ?? false
@@ -56,7 +56,6 @@ export const useAuthenticationStore = defineStore('authentication', () => {
           password: password
         }
       )
-      console.log(data)
 
       accessToken.value = data.accessToken
       refreshToken.value = data.refreshToken
@@ -73,12 +72,13 @@ export const useAuthenticationStore = defineStore('authentication', () => {
   async function logout(): Promise<Result<string>> {
     try {
       await useHttpClient().get('api/authentication/logout')
-
-      user.value = nullUser
     } catch (error) {
       const apiError = error as AxiosError
-      return Result.failure(AppError.failure(apiError.message))
     }
+
+    user.value = nullUser
+    accessToken.value = ''
+    refreshToken.value = ''
 
     return Result.success('Logout successful')
   }
@@ -99,21 +99,21 @@ export const useAuthenticationStore = defineStore('authentication', () => {
 
   async function refresh(): Promise<Result<string>> {
     try {
-      const data = await useHttpClient().post<RefreshTokenRequest, AccessTokenResponse>(
-        'api/authentication/refresh',
-        {
-          refreshToken: refreshToken.value
-        }
-      )
+      const { data } = await useHttpClient().post<
+        RefreshTokenRequest,
+        AxiosResponse<AccessTokenResponse>
+      >('api/authentication/refresh', {
+        refreshToken: refreshToken.value,
+        accessToken: accessToken.value
+      })
 
       accessToken.value = data.accessToken
       refreshToken.value = data.refreshToken
+      return Result.success(data.accessToken)
     } catch (error) {
       const apiError = error as AxiosError
       return Result.failure(AppError.failure(apiError.message))
     }
-
-    return Result.success('Refresh successful')
   }
 
   return {
@@ -124,7 +124,7 @@ export const useAuthenticationStore = defineStore('authentication', () => {
     logout,
     getUserInfo,
     hasPermission,
-    isEmpty,
+    isLoading,
     accessToken,
     refreshToken,
     refresh
